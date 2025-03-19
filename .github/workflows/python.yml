@@ -25,4 +25,4 @@ jobs:
         pytest --cov=src tests/
     - name: Check code style
       run: |
-        black . --check
+        black . --check --diff
