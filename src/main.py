@@ -43,7 +43,9 @@ class NFA:
         new_nfa.states = self.states.union(other_remapped.states)
         new_nfa.transitions = {**self.transitions, **other_remapped.transitions}
         eps_key = (self.final, None)
-        new_nfa.transitions[eps_key] = new_nfa.transitions.get(eps_key, set()).union({other_remapped.initial})
+        new_nfa.transitions[eps_key] = new_nfa.transitions.get(eps_key, set()).union(
+            {other_remapped.initial}
+        )
         return new_nfa
 
     def union(self, other):
@@ -60,7 +62,9 @@ class NFA:
         new_nfa.initial = 0
         new_final = max(other_remapped.states) + 1
         new_nfa.final = new_final
-        new_nfa.states = {0, new_final}.union(self_remapped.states).union(other_remapped.states)
+        new_nfa.states = (
+            {0, new_final}.union(self_remapped.states).union(other_remapped.states)
+        )
         new_nfa.transitions[(0, None)] = {self_remapped.initial, other_remapped.initial}
         new_nfa.transitions[(self_remapped.final, None)] = {new_final}
         new_nfa.transitions[(other_remapped.final, None)] = {new_final}
@@ -80,9 +84,13 @@ class NFA:
         new_nfa.final = new_final
         new_nfa.states = {new_initial, new_final}.union(self_remapped.states)
         new_nfa.transitions[(new_initial, None)] = {self_remapped.initial, new_final}
-        new_nfa.transitions[(self_remapped.final, None)] = {self_remapped.initial, new_final}
+        new_nfa.transitions[(self_remapped.final, None)] = {
+            self_remapped.initial,
+            new_final,
+        }
         new_nfa.transitions.update(self_remapped.transitions)
         return new_nfa
+
 
 class DFA:
     def __init__(self, initial, finals, transitions, alphabet, states_count):
@@ -134,16 +142,17 @@ class DFA:
             finals=new_finals,
             transitions=new_transitions,
             alphabet=self.alphabet,
-            states_count=len(P)
+            states_count=len(P),
         )
+
 
 def tokenize_regex(regex):
     tokens = []
     stack = []
     for c in regex:
-        if c == '(':
+        if c == "(":
             stack.append(c)
-        elif c == ')':
+        elif c == ")":
             if not stack:
                 raise ValueError("Unbalanced parentheses")
             stack.pop()
@@ -155,21 +164,21 @@ def tokenize_regex(regex):
         new_tokens.append(tokens[i])
         current = tokens[i]
         next_tok = tokens[i + 1]
-        if (current not in ('(', '|')
-            and next_tok not in ('*', '|', ')')):
-            new_tokens.append('·')
+        if current not in ("(", "|") and next_tok not in ("*", "|", ")"):
+            new_tokens.append("·")
     new_tokens.append(tokens[-1])
     return new_tokens
 
+
 def shunting_yard(tokens):
-    precedence = {'*': 3, '·': 2, '|': 1, '(': 0}
+    precedence = {"*": 3, "·": 2, "|": 1, "(": 0}
     output = []
     stack = []
     for token in tokens:
-        if token == '(':
+        if token == "(":
             stack.append(token)
-        elif token == ')':
-            while stack and stack[-1] != '(':
+        elif token == ")":
+            while stack and stack[-1] != "(":
                 output.append(stack.pop())
             stack.pop()
         elif token in precedence:
@@ -182,23 +191,25 @@ def shunting_yard(tokens):
         output.append(stack.pop())
     return output
 
+
 def build_nfa(postfix):
     stack = []
     for token in postfix:
-        if token == '*':
+        if token == "*":
             nfa = stack.pop()
             stack.append(nfa.kleene_star())
-        elif token == '·':
+        elif token == "·":
             nfa2 = stack.pop()
             nfa1 = stack.pop()
             stack.append(nfa1.concat(nfa2))
-        elif token == '|':
+        elif token == "|":
             nfa2 = stack.pop()
             nfa1 = stack.pop()
             stack.append(nfa1.union(nfa2))
         else:
             stack.append(NFA.from_symbol(token))
     return stack[0] if stack else NFA()
+
 
 def epsilon_closure(nfa, states):
     closure = set(states)
@@ -213,6 +224,7 @@ def epsilon_closure(nfa, states):
                     stack.append(s)
     return closure
 
+
 def move(nfa, states, symbol):
     next_states = set()
     for state in states:
@@ -221,13 +233,14 @@ def move(nfa, states, symbol):
             next_states.update(nfa.transitions[key])
     return next_states
 
+
 def nfa_to_dfa(nfa):
     alphabet = set()
-    for (state, symbol) in nfa.transitions:
+    for state, symbol in nfa.transitions:
         if symbol is not None:
             alphabet.add(symbol)
     if not alphabet:
-        alphabet.add('')
+        alphabet.add("")
     alphabet = sorted(alphabet)
     initial_states = epsilon_closure(nfa, {nfa.initial})
     dfa_states = [initial_states]
@@ -259,8 +272,9 @@ def nfa_to_dfa(nfa):
         finals=set(finals),
         transitions=dfa_transitions,
         alphabet=alphabet,
-        states_count=len(dfa_states)
+        states_count=len(dfa_states),
     )
+
 
 def are_equivalent(dfa1, dfa2):
     if dfa1.alphabet != dfa2.alphabet:
@@ -296,6 +310,7 @@ def are_equivalent(dfa1, dfa2):
             stack.append((t1, t2))
     return True
 
+
 def regex_to_nfa(regex):
     try:
         tokens = tokenize_regex(regex)
@@ -304,8 +319,9 @@ def regex_to_nfa(regex):
     postfix = shunting_yard(tokens)
     return build_nfa(postfix)
 
+
 def main():
-    while (True):
+    while True:
         regex1 = input("Enter first regex: ")
         regex2 = input("Enter second regex: ")
         nfa1 = regex_to_nfa(regex1)
@@ -318,13 +334,15 @@ def main():
         print("Equivalent:", are_equivalent(min_dfa1, min_dfa2))
         print("\n")
 
-        while (True):
+        while True:
             ans = input("Would you like to enter other data?(y/n)\n")
-            if (ans == "y" or ans == "n"): break
-            else: print("Invalid input")
-        if (ans == "y"):
+            if ans == "y" or ans == "n":
+                break
+            else:
+                print("Invalid input")
+        if ans == "y":
             continue
-        if (ans == "n"):
+        if ans == "n":
             break
     exit = input("Press enter to exit")
 
