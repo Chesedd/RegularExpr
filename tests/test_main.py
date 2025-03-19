@@ -1,6 +1,7 @@
 import pytest
 from main import regex_to_nfa, nfa_to_dfa, are_equivalent, DFA
 
+
 def test_equivalent_regex():
     # test 1
     regex1 = "a"
@@ -145,6 +146,7 @@ def test_equivalent_regex():
     dfa2 = nfa_to_dfa(nfa2).minimize()
 
     assert not are_equivalent(dfa1, dfa2)
+
 
 def test_invalid_regex():
     with pytest.raises(Exception):
