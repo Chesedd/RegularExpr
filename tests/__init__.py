@@ -1,7 +1,7 @@
 import pytest
 from main import regex_to_nfa, nfa_to_dfa, are_equivalent, DFA
 
-
+#tests
 def test_equivalent_regex():
     # test 1
     regex1 = "a"
