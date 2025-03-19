@@ -139,8 +139,17 @@ class DFA:
 
 def tokenize_regex(regex):
     tokens = []
+    stack = []
     for c in regex:
+        if c == '(':
+            stack.append(c)
+        elif c == ')':
+            if not stack:
+                raise ValueError("Unbalanced parentheses")
+            stack.pop()
         tokens.append(c)
+    if stack:
+        raise ValueError("Unbalanced parentheses")
     new_tokens = []
     for i in range(len(tokens) - 1):
         new_tokens.append(tokens[i])
@@ -288,7 +297,10 @@ def are_equivalent(dfa1, dfa2):
     return True
 
 def regex_to_nfa(regex):
-    tokens = tokenize_regex(regex)
+    try:
+        tokens = tokenize_regex(regex)
+    except ValueError as e:
+        raise ValueError(f"Invalid regex: {str(e)}") from e
     postfix = shunting_yard(tokens)
     return build_nfa(postfix)
 
