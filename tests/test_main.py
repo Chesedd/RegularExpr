@@ -1,7 +1,6 @@
 import pytest
 from main import regex_to_nfa, nfa_to_dfa, are_equivalent, DFA
 
-#tests
 def test_equivalent_regex():
     # test 1
     regex1 = "a"
@@ -97,6 +96,8 @@ def test_equivalent_regex():
     dfa1 = nfa_to_dfa(nfa1).minimize()
     dfa2 = nfa_to_dfa(nfa2).minimize()
 
+    assert are_equivalent(dfa1, dfa2)
+
     # test 9
     regex1 = "((a))"
     regex2 = "a"
@@ -106,6 +107,8 @@ def test_equivalent_regex():
 
     dfa1 = nfa_to_dfa(nfa1).minimize()
     dfa2 = nfa_to_dfa(nfa2).minimize()
+
+    assert are_equivalent(dfa1, dfa2)
 
     # test 10
     regex1 = "a*b"
@@ -117,7 +120,7 @@ def test_equivalent_regex():
     dfa1 = nfa_to_dfa(nfa1).minimize()
     dfa2 = nfa_to_dfa(nfa2).minimize()
 
-    assert (not are_equivalent(dfa1, dfa2))
+    assert not are_equivalent(dfa1, dfa2)
 
     # test 11
     regex1 = "(a|b)c"
@@ -129,7 +132,7 @@ def test_equivalent_regex():
     dfa1 = nfa_to_dfa(nfa1).minimize()
     dfa2 = nfa_to_dfa(nfa2).minimize()
 
-    assert (not are_equivalent(dfa1, dfa2))
+    assert not are_equivalent(dfa1, dfa2)
 
     # test 12
     regex1 = "a(b|c)*"
@@ -141,7 +144,7 @@ def test_equivalent_regex():
     dfa1 = nfa_to_dfa(nfa1).minimize()
     dfa2 = nfa_to_dfa(nfa2).minimize()
 
-    assert (not are_equivalent(dfa1, dfa2))
+    assert not are_equivalent(dfa1, dfa2)
 
 def test_invalid_regex():
     with pytest.raises(Exception):
